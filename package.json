@@ -1,0 +1,17 @@
+{
+  "name": "sales-management-system",
+  "version": "1.0.0",
+  "description": "Sales Management System with Microservices Architecture",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces",
+    "start": "npm run start --workspaces",
+    "dev": "npm run dev --workspaces"
+  },
+  "author": "",
+  "license": "ISC"
+} 

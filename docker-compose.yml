@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: salesadmin
+      POSTGRES_PASSWORD: salespass
+      POSTGRES_DB: userdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sales-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salesadmin -d userdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  customer-db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - customer_db_data:/data/db
+    networks:
+      - sales-network
+
+  sales-db:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    volumes:
+      - sales_db_data:/data/db
+    networks:
+      - sales-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=salesadmin
+      - DB_PASSWORD=salespass
+      - DB_DATABASE=userdb
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sales-network
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: services/customer-service/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URI=mongodb://customer-db:27017/customerdb
+    depends_on:
+      - customer-db
+    networks:
+      - sales-network
+
+  sales-service:
+    build:
+      context: .
+      dockerfile: services/sales-service/Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - MONGODB_URI=mongodb://sales-db:27017/salesdb
+    depends_on:
+      - sales-db
+      - user-service
+      - customer-service
+    networks:
+      - sales-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - USER_SERVICE_URL=http://user-service:3001
+      - CUSTOMER_SERVICE_URL=http://customer-service:3002
+      - SALES_SERVICE_URL=http://sales-service:3003
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      user-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+      sales-service:
+        condition: service_started
+    networks:
+      - sales-network
+
+networks:
+  sales-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  customer_db_data:
+  sales_db_data: 
