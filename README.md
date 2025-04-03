@@ -116,11 +116,3 @@ cd services/<service-name> && npm test
 ## Environment Variables
 
 Each service requires its own .env file. See the .env.example files in each service directory for required variables.
-
-## Project Commands
-
-The following commands can be run from the root directory:
-
-- `npm run dev` - Start all services in development mode
-- `npm start` - Start all services in production mode
-- `npm test` - Run tests for all services
