@@ -10,12 +10,29 @@ A microservices-based sales management system built with Node.js, Express, and M
 - API Gateway for Service Communication
 - Swagger Documentation
 - Docker Support
+- Workspace-based Monorepo Structure
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
 - MongoDB
 - Docker and Docker Compose (optional)
+
+The system consists of four microservices:
+
+- **API Gateway** (Port 3000) - Entry point for all client requests
+- **User Service** (Port 3001) - Handles authentication and user management
+- **Customer Service** (Port 3002) - Manages customer data and relationships
+- **Sales Service** (Port 3003) - Tracks sales pipeline and opportunities
+
+## 🛠️ Tech Stack
+
+- **Backend**: Node.js & Express
+- **Database**: MongoDB
+- **Authentication**: JWT
+- **Documentation**: Swagger
+- **Containerization**: Docker
+- **Project Structure**: Monorepo with npm workspaces
 
 ## Project Structure
 
@@ -26,9 +43,10 @@ A microservices-based sales management system built with Node.js, Express, and M
 │   ├── customer-service/    # Customer management service
 │   ├── sales-service/      # Sales tracking service
 │   └── api-gateway/        # API Gateway
-├── shared/
-│   └── common/            # Shared utilities and types
-└── docker-compose.yml     # Docker Compose configuration
+├── shared/                 # Shared modules and utilities
+├── node_modules/          # Root level dependencies
+├── package.json          # Workspace configuration
+└── docker-compose.yml    # Docker Compose configuration
 ```
 
 ## Getting Started
@@ -38,15 +56,12 @@ A microservices-based sales management system built with Node.js, Express, and M
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd sales-management-backend
+cd sales-management-system
 ```
 
-2. Install dependencies for each service:
+2. Install dependencies using workspace-based installation:
 ```bash
-cd services/user-service && npm install
-cd ../customer-service && npm install
-cd ../sales-service && npm install
-cd ../api-gateway && npm install
+npm install
 ```
 
 3. Create .env files in each service directory (see .env.example files)
@@ -56,19 +71,14 @@ cd ../api-gateway && npm install
 mongod
 ```
 
-5. Start each service:
+5. Start all services in development mode:
 ```bash
-# Terminal 1 - User Service
-cd services/user-service && npm run dev
+npm run dev
+```
 
-# Terminal 2 - Customer Service
-cd services/customer-service && npm run dev
-
-# Terminal 3 - Sales Service
-cd services/sales-service && npm run dev
-
-# Terminal 4 - API Gateway
-cd services/api-gateway && npm run dev
+Alternatively, you can start individual services from their respective directories:
+```bash
+cd services/<service-name> && npm run dev
 ```
 
 ### Using Docker
@@ -93,13 +103,24 @@ Each service provides Swagger documentation at:
 
 ## Testing
 
-Run tests for each service:
+Run tests for all services:
 ```bash
-cd services/user-service && npm test
-cd ../customer-service && npm test
-cd ../sales-service && npm test
+npm test
+```
+
+To run tests for a specific service:
+```bash
+cd services/<service-name> && npm test
 ```
 
 ## Environment Variables
 
 Each service requires its own .env file. See the .env.example files in each service directory for required variables.
+
+## Project Commands
+
+The following commands can be run from the root directory:
+
+- `npm run dev` - Start all services in development mode
+- `npm start` - Start all services in production mode
+- `npm test` - Run tests for all services
