@@ -8,7 +8,7 @@ const router = express.Router();
 // Validation middleware
 const saleValidation = [
   body('customerId').isMongoId().withMessage('Invalid customer ID'),
-  body('userId').isMongoId().withMessage('Invalid user ID'),
+  body('userId').isUUID().withMessage('Invalid user ID'),
   body('products').isArray().withMessage('Products must be an array'),
   body('products.*.name').notEmpty().withMessage('Product name is required'),
   body('products.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),

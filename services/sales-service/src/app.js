@@ -48,6 +48,17 @@ app.use('/api/sales', salesRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  
+  // Check if it's an AppError
+  if (err.statusCode) {
+    return res.status(err.statusCode).json({
+      status: err.status || 'error',
+      message: err.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Default error response
   res.status(500).json({
     status: 'error',
     message: 'Internal Server Error',

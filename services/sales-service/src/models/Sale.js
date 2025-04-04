@@ -13,18 +13,34 @@ const saleSchema = new mongoose.Schema({
     required: true
   },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true
   },
-  amount: {
+  products: [{
+    name: {
+      type: String,
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0
+    }
+  }],
+  totalAmount: {
     type: Number,
     required: true,
     min: 0
   },
-  description: {
+  paymentMethod: {
     type: String,
-    required: true
+    required: true,
+    enum: ['cash', 'credit_card', 'bank_transfer']
   },
   status: {
     type: String,

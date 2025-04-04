@@ -50,7 +50,7 @@ class CustomerController {
 
   async addNote(req, res, next) {
     try {
-      const note = await CustomerService.addNote(req.params.id, req.body);
+      const note = await CustomerService.addNote(req.params.id, req.body.content);
       res.status(201).json(note);
     } catch (error) {
       next(error);

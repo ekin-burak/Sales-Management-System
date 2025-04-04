@@ -1,4 +1,5 @@
-const Sale = require('../models/Sale');
+const { Sale } = require('../models/Sale');
+const Customer = require('../models/Customer');
 const { AppError } = require('../utils/errors');
 
 class SaleService {
@@ -8,22 +9,40 @@ class SaleService {
       await sale.save();
       return sale;
     } catch (error) {
+      console.error('Sale creation error:', error);
       throw new AppError('Error creating sale', 500);
     }
   }
 
   async getSaleById(id) {
     try {
-      const sale = await Sale.findById(id)
-        .populate('customerId', 'name email')
-        .populate('userId', 'name email');
+      // First, get the sale without population
+      const sale = await Sale.findById(id);
       
       if (!sale) {
         throw new AppError('Sale not found', 404);
       }
       
-      return sale;
+      // Then, try to populate customer data if available
+      try {
+        const customer = await Customer.findById(sale.customerId);
+        if (customer) {
+          // If customer exists, add the customer data to the sale
+          const saleObj = sale.toObject();
+          saleObj.customerId = {
+            _id: customer._id,
+            name: customer.name,
+            email: customer.email
+          };
+          return saleObj;
+        }
+      } catch (error) {
+        console.error('Error populating customer:', error);
+      }
+      
+      return sale.toObject();
     } catch (error) {
+      console.error('Error in getSaleById:', error);
       if (error instanceof AppError) throw error;
       throw new AppError('Error fetching sale', 500);
     }
@@ -48,25 +67,47 @@ class SaleService {
       if (startDate || endDate) {
         filter.createdAt = {};
         if (startDate) filter.createdAt.$gte = new Date(startDate);
-        if (endDate) filter.createdAt.$lte = new Date(endDate);
+        if (endDate) filter.createdAt.$lle = new Date(endDate);
       }
 
+      // First, get the sales without population
       const sales = await Sale.find(filter)
-        .populate('customerId', 'name email')
-        .populate('userId', 'name email')
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit);
 
+      // Then, try to populate customer data if available
+      const populatedSales = await Promise.all(sales.map(async (sale) => {
+        try {
+          // Try to find the customer
+          const customer = await Customer.findById(sale.customerId);
+          if (customer) {
+            // If customer exists, add the customer data to the sale
+            const saleObj = sale.toObject();
+            saleObj.customerId = {
+              _id: customer._id,
+              name: customer.name,
+              email: customer.email
+            };
+            return saleObj;
+          }
+          return sale.toObject();
+        } catch (error) {
+          console.error('Error populating customer:', error);
+          return sale.toObject();
+        }
+      }));
+
       const total = await Sale.countDocuments(filter);
 
       return {
-        sales,
+        sales: populatedSales,
         total,
         page: parseInt(page),
         totalPages: Math.ceil(total / limit)
       };
     } catch (error) {
+      console.error('Error in getSales:', error);
       throw new AppError('Error fetching sales', 500);
     }
   }
